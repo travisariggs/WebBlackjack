@@ -1,0 +1,70 @@
+Web Blackjack Design:  Code Design
+# Travis Riggs
+
+
+# Show should "Play Again" on all templates...maybe modify layout.erb?
+
+Welcome View:
+  - Capture user's name
+  - Find out how much money they want to wager
+  -> On Submit of form (through POST?), go to Bet view
+
+Bet View:
+  - Capture user's round wager
+  -> On Submit of form (through POST?), go to "Game" view
+
+Game View:
+  - Possibly use some status variables to determine place in the game:
+  -- Player Turn
+  -- Dealer turn
+  -- Show Results
+
+  := Player Turn:
+
+    Display Dealer's:
+      - Cards (with one hidden) 
+      - Do NOT show total!
+    Display User's:
+      - Cards
+      - Total Money
+      - Current Bet
+    Buttons:
+      - "Hit"
+      - "Stay"
+
+  := Dealer's Turn:
+
+    Display Dealer's:
+      - Cards
+      - Total
+      -- Button to see Dealer's next card (if they have to hit)
+    Display User's:
+      - Cards
+      - Total Money
+      - Current Bet
+
+  =: Show Results:
+
+    Message describing results:
+      - Who won
+      - Money won or lost
+      - Remaining money
+    Display Dealer's:
+      - Cards
+      - Total
+    Display User's:
+      - Cards
+      - Total Money
+      - Current Bet
+    Buttons to:
+      - "Quit"
+      ---> Go to "Closing" View
+      - "Play Again"
+      ---> Go to "Bet" View
+
+
+
+
+
+
+
