@@ -1,12 +1,26 @@
-<p4>Dealer's Hand:</p4>
+<div>
+  <div>Dealer's Hand:</div>
+  <% session[:dealer_hand].each do |card| %>
+      <%= card.to_s %>
+    <% end %>
+</div>
 
-<!-- Need to display cards and possibly total here -->
+<br/>
 
-<!-- <p4>< "#{Player.name}'s Hand:  #{Total}        Current Wager: $#{Wager}" ></p4> -->
-<p4>Player's Hand:  Total        Current Wager: $Wager</p4>
-
-<!-- Need to display cards here -->
+<div>
+  <div><%= session[:username] %>'s Hand:</div>
+  <div>Total:</div>
+  <div>Current Wager: $<%= session[:wager] %></div>
+  <div>Total Money: $<%= session[:money] %></div>
+  <% session[:player_hand].each do |card| %>
+    <%= card.to_s %>
+  <% end %>
+</div>
 
 <!-- Diplay Hit/Stay buttons IF it's Player's turn -->
-<input type="submit" value="Stay"><input type="submit" value="Hit!">
-
+<div>
+  <% if session[:game_status] == 'PlayersTurn' %>
+    <input type="submit" value="Stay" class="btn">
+    <input type="submit" value="Hit!" class="btn">
+  <% end %>
+</div>
