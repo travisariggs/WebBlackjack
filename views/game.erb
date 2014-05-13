@@ -1,15 +1,35 @@
-<div>
-  <div>Dealer's Hand:</div>
-  <% session[:dealer_hand].each do |card| %>
+<div class="well">
+  <div>Dealer's Hand: 
+    <% if @turn == 'Dealer' %>
+      <%= calculate_hand(session[:dealer_hand]) %>
+    <% end %>
+  </div>
+
+    <% session[:dealer_hand].each do |card| %>
       <%= card.to_s %>
     <% end %>
 </div>
 
+<!-- Diplay Next Card for Dealer button IF it's Dealer's turn -->
+<div>
+  
+  <% if @turn == 'Dealer' %>
+
+    <% if @show_dealer_hit %>
+  
+      <form class="hit_stay" action="/game/dealer/hit" method="post">
+        <input type="submit" value="See dealer's next card..." class="btn btn-primary">
+      </form>
+
+    <% end %>
+
+  <% end %>
+</div>
+
 <br/>
 
-<div>
-  <div><%= session[:username] %>'s Hand:</div>
-  <div>Total:</div>
+<div class="well">
+  <div><%= session[:username] %>'s Hand:  <%= calculate_hand(session[:player_hand]) %></div>
   <div>Current Wager: $<%= session[:wager] %></div>
   <div>Total Money: $<%= session[:money] %></div>
   <% session[:player_hand].each do |card| %>
@@ -19,8 +39,24 @@
 
 <!-- Diplay Hit/Stay buttons IF it's Player's turn -->
 <div>
-  <% if session[:game_status] == 'PlayersTurn' %>
-    <input type="submit" value="Stay" class="btn">
-    <input type="submit" value="Hit!" class="btn">
+  <% if @show_hit_stay_buttons %>
+    <form class="hit_stay" action="/game/player/stay" method="post">
+      <input type="submit" value="Stay" class="btn btn-success">
+    </form>
+    <form class="hit_stay" action="/game/player/hit" method="post">
+      <input type="submit" value="Hit" class="btn btn-danger">
+    </form>
+  <% end %>
+</div>
+
+<!-- Diplay Play Again?/Quit buttons if the round is over -->
+<div>
+  <% if @show_play_again_quit_buttons %>
+    <form class="hit_stay" action="/game/player/quit" method="post">
+      <input type="submit" value="I'll Stop Now" class="btn btn-info">
+    </form>
+    <form class="hit_stay" action="/game/player/playagain" method="post">
+      <input type="submit" value="Play Again" class="btn btn-warning">
+    </form>
   <% end %>
 </div>
