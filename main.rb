@@ -3,6 +3,11 @@ require 'sinatra'
 
 set :sessions, true
 
+BLACKJACK = 21
+DEALER_STAY_MIN = 17
+
+BLACKJACK_WIN_FACTOR = 2  # Amount to increase winnings on Blackjack!
+
 MINIMUM_BUY_IN = 200
 MINIMUM_BET = 20
 
@@ -29,10 +34,10 @@ helpers do
     end
 
     # If it's a bust, can we convert any aces to 1's?
-    if total > 21
+    if total > BLACKJACK
       values.select{ |c| c == 'A' }.length.times do 
         total -= 10
-        break if total <= 21
+        break if total <= BLACKJACK
       end
     end
 
@@ -42,9 +47,9 @@ helpers do
 
   def hand_status?(hand_total)
 
-    if hand_total == 21
+    if hand_total == BLACKJACK
       status = 'Blackjack'
-    elsif hand_total > 21
+    elsif hand_total > BLACKJACK
       status = 'Bust'
     else
       status = 'Playing'
@@ -78,6 +83,44 @@ helpers do
 
   end
 
+  def green_message(message)
+    @success = message
+  end
+
+  def red_message(message)
+    @error = message
+  end
+
+  def blue_message(message)
+    @info = message
+  end
+
+  def winner!(message, factor=1)
+    @show_hit_stay_buttons = false
+    @show_play_again_quit_buttons = true  
+
+    session[:money] += factor*session[:wager]
+
+    green_message(message)
+  end
+
+  def loser!(message)
+    @show_hit_stay_buttons = false
+    @show_play_again_quit_buttons = true
+
+    session[:money] -= session[:wager]
+
+    red_message(message)
+
+  end
+
+  def tie!(message)
+    @show_hit_stay_buttons = false
+    @show_play_again_quit_buttons = true
+
+    blue_message(message)
+  end
+
 end
 
 #@@@@@@@@@@@@@@@@ ROUTES @@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -96,13 +139,13 @@ end
 
 post '/welcome' do
   if params[:username].empty?
-    @error = "You have to tell me who you are..."
+    red_message("You have to tell me who you are...")
     halt erb(:welcome)
   elsif params[:money].empty?
-    @error = "You can't play without some money"
+    red_message("You can't play without some money")
     halt erb(:welcome)
   elsif params[:money].to_i < MINIMUM_BUY_IN
-    @error = "I'm sorry.  There is a minimum buy-in of $#{MINIMUM_BUY_IN} for this table."
+    red_message("I'm sorry.  There is a minimum buy-in of $#{MINIMUM_BUY_IN} for this table.")
     halt erb(:welcome)
   end
 
@@ -114,19 +157,25 @@ post '/welcome' do
 end
 
 get '/bet' do
-  if session[:username]
-    erb :bet
-  else
+  if !session[:username]
     redirect '/welcome'
+  # Have any money left to play?
+  elsif session[:money] < MINIMUM_BET
+    redirect '/game/player/quit'
+  else
+    erb :bet
   end
 end
 
 post '/bet' do
   if params[:wager].empty?
-    @error = "You need to place a bet"
+    red_message("You need to place a bet")
     halt erb(:bet)
   elsif params[:wager].to_i < MINIMUM_BET
-    @error = "I'm sorry.  There is a minimum wager of $#{MINIMUM_BET} for this table."
+    red_message("I'm sorry.  There is a minimum wager of $#{MINIMUM_BET} for this table.")
+    halt erb(:bet)
+  elsif params[:wager].to_i > session[:money]
+    red_message("You only have $#{session[:money]}.")
     halt erb(:bet)
   end
 
@@ -139,61 +188,39 @@ get '/game' do
   # Do we have all the initial information to start a game?
   unless session[:username] && session[:money] && session[:wager]
     redirect '/welcome'
+
+  else 
+    #@@@@ Setup a new round
+    # Setup Shoe of Cards
+    suits = ['C', 'D', 'H', 'S']
+    cards = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+    session[:shoe] = cards.product(suits).shuffle
+
+    # Deal Cards
+    session[:dealer_hand] = []
+    session[:player_hand] = []
+
+    session[:dealer_hand] << session[:shoe].pop
+    session[:player_hand] << session[:shoe].pop
+    session[:dealer_hand] << session[:shoe].pop
+    session[:player_hand] << session[:shoe].pop
+
+    # Set status variable for 'PlayersTurn'
+    session[:game_status] = 'PlayersTurn'
+
+    # Check initial game status for Blackjack
+    total = calculate_hand(session[:player_hand])
+    status = hand_status?(total)
+
+    # Anyone blackjack?
+    if calculate_hand(session[:player_hand]) == BLACKJACK
+      winner!("Blackjack, baby!", BLACKJACK_WIN_FACTOR)
+    elsif calculate_hand(session[:dealer_hand]) == BLACKJACK
+      loser!("Dealer has Blackjack")
+    end
+
+    erb :game 
   end
-
-  # Have we already started playing?
-  # if session[:shoe] && session[:dealer_hand] && session[:player_hand]
-  #   erb :game
-
-  # else 
-
-  #@@@@ Setup a new round
-  # Setup Shoe of Cards
-  suits = ['C', 'D', 'H', 'S']
-  cards = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
-  session[:shoe] = cards.product(suits).shuffle
-
-  # Deal Cards
-  session[:dealer_hand] = []
-  session[:player_hand] = []
-
-  session[:dealer_hand] << session[:shoe].pop
-  session[:player_hand] << session[:shoe].pop
-  session[:dealer_hand] << session[:shoe].pop
-  session[:player_hand] << session[:shoe].pop
-
-  # Set status variable for 'PlayersTurn'
-  session[:game_status] = 'PlayersTurn'
-
-  # Check initial game status for Blackjack
-  total = calculate_hand(session[:player_hand])
-  status = hand_status?(total)
-
-  # Player blackjack?
-  if calculate_hand(session[:player_hand]) == 21
-
-    @success = "Blackjack, baby!"
-
-    session[:money] += 2*session[:wager]
-
-    @show_hit_stay_buttons = false
-    @show_play_again_quit_buttons = true
-
-  elsif calculate_hand(session[:dealer_hand]) == 21
-
-    @error = "Dealer has Blackjack"
-
-    session[:money] -= session[:wager]
-
-    @show_hit_stay_buttons = false
-    @show_play_again_quit_buttons = true
-
-  end
-
-  erb :game 
-  
-  #end
-
 end
 
 post '/game/player/hit' do
@@ -203,23 +230,9 @@ post '/game/player/hit' do
   status = hand_status?(total)
 
   if status == 'Blackjack'
-
-    @success = "Blackjack, baby!"
-
-    session[:money] += 2*session[:wager]
-
-    @show_hit_stay_buttons = false
-    @show_play_again_quit_buttons = true
-
+    winner!("Blackjack, baby!", BLACKJACK_WIN_FACTOR)
   elsif status == 'Bust'
-
-    @error = "Sorry, #{session[:username]}, you busted"
-
-    session[:money] -= session[:wager]
-
-    @show_hit_stay_buttons = false
-    @show_play_again_quit_buttons = true
-
+    loser!("Sorry, #{session[:username]}, you busted")
   end
 
   erb :game
@@ -227,8 +240,8 @@ end
 
 post '/game/player/stay' do
   @show_hit_stay_buttons = false
-  @info = "#{session[:username]}, you have decided to stay."
   @turn = 'Dealer'
+  blue_message("#{session[:username]}, you have decided to stay.")
   redirect '/game/dealer'
 end
 
@@ -252,49 +265,29 @@ get '/game/dealer' do
   dealer_status = hand_status?(dealer_total)
 
   if dealer_status == 'Blackjack'
-
-    @error = "Dealer has Blackjack"
-    session[:money] -= session[:wager]
-    @show_play_again_quit_buttons = true
-
+    loser!("Dealer has Blackjack")
   elsif dealer_status == 'Bust'
-
-    @success = "Dealer busted!  #{session[:username]}, you win!"
-    session[:money] += session[:wager]
-    @show_play_again_quit_buttons = true
-
-  elsif dealer_total < 17
-
+    winner!("Dealer busted!  #{session[:username]}, you win!")
+  elsif dealer_total < DEALER_STAY_MIN
     @show_dealer_hit = true
-
   else # 17, 18, 19, 20
 
     # Dealer is done, see who won
     user_total = calculate_hand(session[:player_hand])
 
     if user_total > dealer_total
-      @success = "#{session[:username]}, you won!"
-      session[:money] += session[:wager]
+      winner!("#{session[:username]}, you won!")
     elsif user_total < dealer_total
-      @error = "Sorry #{session[:username]}, you lost this time."
-      session[:money] -= session[:wager]
+      loser!("Sorry #{session[:username]}, you lost this time.")
     elsif user_total == dealer_total
-      @info = "It's a push."
+      tie!("It's a push.")
     else
-      @error = "SOMETHING WENT TERRIBLY WRONG!"
-    end
-
-    @show_play_again_quit_buttons = true
-
-    # Make decisions about the next round
-    if session[:money] == 0
-      redirect '/game/player/quit'
+      red_message("SOMETHING WENT TERRIBLY WRONG!")
     end
 
   end
 
   erb :game
-
 end
 
 post '/game/dealer/hit' do
