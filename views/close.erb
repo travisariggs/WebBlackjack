@@ -1,13 +1,19 @@
+<br/>
+
 <div>
   <% if session[:money] > session[:starting_money] %>
     <div><%= "Congratulations #{session[:username]}!" %></div>
+    <br/>
     <div><%= "You started with $#{session[:starting_money]} and ended up with $#{session[:money]}." %></div>
+    <br/>
     <div>Don't spend it all in once place...</div>
   <% elsif session[:money] == session[:starting_money] %>
     <div><%= "Well #{session[:username]}, it was a draw." %></div>
+    <br/>
     <div><%= "You started with $#{session[:starting_money]} and ended up with $#{session[:money]}." %></div>
   <% elsif session[:money] < session[:starting_money] %>
     <div><%= "Sorry #{session[:username]}, better luck next time." %></div>
+    <br/>
     <div><%= "You started with $#{session[:starting_money]} and ended up with $#{session[:money]}." %></div>
   <% end %>
 </div>

@@ -5,8 +5,13 @@
     <% end %>
   </div>
 
-    <% session[:dealer_hand].each do |card| %>
-      <%= card.to_s %>
+    <% session[:dealer_hand].each_with_index do |card, i| %>
+      <% if @turn != 'Dealer' && i == 0 %>
+        <img src='/images/cards/cover.jpg' class='card' />
+      <% else %>
+        <%= show_card(card) %>
+      <% end %>
+      
     <% end %>
 </div>
 
@@ -17,7 +22,7 @@
 
     <% if @show_dealer_hit %>
   
-      <form class="hit_stay" action="/game/dealer/hit" method="post">
+      <form class="container" action="/game/dealer/hit" method="post">
         <input type="submit" value="See dealer's next card..." class="btn btn-primary">
       </form>
 
@@ -33,7 +38,7 @@
   <div>Current Wager: $<%= session[:wager] %></div>
   <div>Total Money: $<%= session[:money] %></div>
   <% session[:player_hand].each do |card| %>
-    <%= card.to_s %>
+    <%= show_card(card) %>
   <% end %>
 </div>
 

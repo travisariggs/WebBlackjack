@@ -3,6 +3,7 @@ require 'sinatra'
 
 set :sessions, true
 
+#@@@@@@@@@@@@@@ HELPERS @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 helpers do
 
   def calculate_hand(hand)
@@ -49,11 +50,34 @@ helpers do
   end
 
   def show_card(card)
+    # 'card' is an array of ['3', 'C']
+
+    # Convert the suit from a capital letter to spelled out name
+    suit = case card[1]
+      when 'C' then 'clubs'
+      when 'D' then 'diamonds'
+      when 'H' then 'hearts'
+      when 'S' then 'spades'
+      else 'ERROR'
+    end
+
+    # Convert the value to the image name value needed
+    value = case card[0]
+      when 'A' then 'ace'
+      when 'K' then 'king'
+      when 'Q' then 'queen'
+      when 'J' then 'jack'
+      else card[0]
+    end
+
+    # Build the image tag
+    tag = "<img src='/images/cards/#{suit}_#{value}.jpg' class='card' />"
 
   end
 
 end
 
+#@@@@@@@@@@@@@@@@ ROUTES @@@@@@@@@@@@@@@@@@@@@@@@@@@@
 before do
   @show_hit_stay_buttons = true
   @turn = 'Player'
@@ -184,6 +208,10 @@ post '/game/player/stay' do
   @info = "#{session[:username]}, you have decided to stay."
   @turn = 'Dealer'
   redirect '/game/dealer'
+end
+
+get '/game/player/quit' do
+  erb :close
 end
 
 post '/game/player/quit' do

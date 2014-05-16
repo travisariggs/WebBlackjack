@@ -1,8 +1,29 @@
-<p3>Welcome <%= session[:username] %>!</p3>
+<br/>
 
-<p5>You have $<%= session[:money] %></p5>
+<div>
+  <p3>Welcome <%= session[:username] %>!</p3>
+</div>
 
-<form action='/bet' method='post'>
-  How much would you like to wager?:  <input type="text" name="wager">
-  <input type="submit" value="Deal the Cards" class="btn">
-</form>
+<br/>
+
+<div>
+  <p5>You have $<%= session[:money] %></p5>
+</div>
+
+<br/>
+
+<div class="container">
+  <form class="form-horizontal" action='/bet' method='post'>
+    <div class="control-group">
+      <label class="control-label" for="wager">Your wager?:</label>
+      <div class="controls">
+        <input type="text" id="wager" name="wager" placeholder="50">
+      </div>
+    </div>
+    <div class="control-group">
+      <div class="controls">
+        <button type="submit" class="btn">Deal the Cards</button>
+      </div>
+    </div>
+  </form>
+</div>
