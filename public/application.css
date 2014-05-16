@@ -22,8 +22,14 @@ img.card {
   margin: 10px;
   border-style: solid;
   border-color: #FFFFFF;
-  border-width: 15px;
-  border-radius: 10px;
+  border-width: 10px;
+  border-radius: 8px;
+  height: 125px;
+  width: auto;
+}
+
+.felt {
+  background-color: #E1FDF7;
 }
 
 .my-container {

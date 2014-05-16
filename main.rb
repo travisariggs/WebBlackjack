@@ -3,6 +3,9 @@ require 'sinatra'
 
 set :sessions, true
 
+MINIMUM_BUY_IN = 200
+MINIMUM_BET = 20
+
 #@@@@@@@@@@@@@@ HELPERS @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 helpers do
 
@@ -92,6 +95,17 @@ get '/welcome' do
 end
 
 post '/welcome' do
+  if params[:username].empty?
+    @error = "You have to tell me who you are..."
+    halt erb(:welcome)
+  elsif params[:money].empty?
+    @error = "You can't play without some money"
+    halt erb(:welcome)
+  elsif params[:money].to_i < MINIMUM_BUY_IN
+    @error = "I'm sorry.  There is a minimum buy-in of $#{MINIMUM_BUY_IN} for this table."
+    halt erb(:welcome)
+  end
+
   session[:username] = params[:username]
   session[:money] = params[:money].to_i
   session[:starting_money] = params[:money].to_i
@@ -108,6 +122,14 @@ get '/bet' do
 end
 
 post '/bet' do
+  if params[:wager].empty?
+    @error = "You need to place a bet"
+    halt erb(:bet)
+  elsif params[:wager].to_i < MINIMUM_BET
+    @error = "I'm sorry.  There is a minimum wager of $#{MINIMUM_BET} for this table."
+    halt erb(:bet)
+  end
+
   session[:wager] = params[:wager].to_i
   redirect '/game'
 end
@@ -232,13 +254,13 @@ get '/game/dealer' do
   if dealer_status == 'Blackjack'
 
     @error = "Dealer has Blackjack"
-
+    session[:money] -= session[:wager]
     @show_play_again_quit_buttons = true
 
   elsif dealer_status == 'Bust'
 
     @success = "Dealer busted!  #{session[:username]}, you win!"
-
+    session[:money] += session[:wager]
     @show_play_again_quit_buttons = true
 
   elsif dealer_total < 17
@@ -276,74 +298,9 @@ get '/game/dealer' do
 end
 
 post '/game/dealer/hit' do
-
-  @show_hit_stay_buttons = false
-  @turn = 'Dealer'
-
   session[:dealer_hand] << session[:shoe].pop
-
-  dealer_total = calculate_hand(session[:dealer_hand])
-  dealer_status = hand_status?(dealer_total)
-
-  if dealer_status == 'Blackjack'
-
-    @error = "Dealer has Blackjack"
-
-    session[:money] -= session[:wager]
-
-    @show_play_again_quit_buttons = true
-
-  elsif dealer_status == 'Bust'
-
-    @success = "Dealer busted!  #{session[:username]}, you win!"
-
-    session[:money] += session[:wager]
-
-    @show_play_again_quit_buttons = true
-
-  elsif dealer_total < 17
-
-    @show_dealer_hit = true
-
-  elsif [17, 18, 19, 20].include?(dealer_total)
-
-    # Dealer is done, see who won
-    user_total = calculate_hand(session[:player_hand])
-
-    if user_total > dealer_total
-      @success = "#{session[:username]}, you won!"
-      session[:money] += session[:wager]
-    elsif user_total < dealer_total
-      @error = "Sorry #{session[:username]}, you lost this time."
-      session[:money] -= session[:wager]
-    elsif user_total == dealer_total
-      @info = "It's a push."
-    else
-      @error = "SOMETHING WENT TERRIBLY WRONG!"
-    end
-
-    @show_play_again_quit_buttons = true
-
-    # Make decisions about the next round
-    if session[:money] == 0
-      redirect '/game/player/quit'
-    end
-
-  end
-
-  erb :game
-
+  redirect '/game/dealer'
 end
 
-# post '/game' do
-#   # Setup initial game values
-
-#   # Render the template
-#   erb :game
-# end
-
-# get '/game' do
-#   erb :game
-# end
 
 

@@ -1,8 +1,10 @@
-<div class="well">
-  <div>Dealer's Hand: 
-    <% if @turn == 'Dealer' %>
-      <%= calculate_hand(session[:dealer_hand]) %>
-    <% end %>
+<div class="well felt">
+  <div>
+    <h4>Dealer's Hand: 
+      <% if @turn == 'Dealer' %>
+        <%= calculate_hand(session[:dealer_hand]) %>
+      <% end %>
+    </h4>
   </div>
 
     <% session[:dealer_hand].each_with_index do |card, i| %>
@@ -33,8 +35,11 @@
 
 <br/>
 
-<div class="well">
-  <div><%= session[:username] %>'s Hand:  <%= calculate_hand(session[:player_hand]) %></div>
+<div class="well felt">
+  <div>
+    <h4><%= session[:username] %>'s Hand:  <%= calculate_hand(session[:player_hand]) %>
+    </h4>
+  </div>
   <div>Current Wager: $<%= session[:wager] %></div>
   <div>Total Money: $<%= session[:money] %></div>
   <% session[:player_hand].each do |card| %>
