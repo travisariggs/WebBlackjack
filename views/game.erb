@@ -1,72 +1,82 @@
-<div class="well felt">
-  <div>
-    <h4>Dealer's Hand: 
-      <% if @turn == 'Dealer' %>
-        <%= calculate_hand(session[:dealer_hand]) %>
+<div id="game">
+  <%if @red_alert %>
+    <div class="alert alert-error"><%=@red_alert%></div>
+  <% elsif @green_alert %>
+    <div class="alert alert-success"><%=@green_alert%></div>
+  <% elsif @blue_alert %>
+    <div class="alert alert-info"><%=@blue_alert%></div>
+  <% end %>
+
+  <div class="well felt">
+    <div>
+      <h4>Dealer's Hand: 
+        <% if @turn == 'Dealer' %>
+          <%= calculate_hand(session[:dealer_hand]) %>
+        <% end %>
+      </h4>
+    </div>
+
+      <% session[:dealer_hand].each_with_index do |card, i| %>
+        <% if @turn != 'Dealer' && i == 0 %>
+          <img src='/images/cards/cover.jpg' class='card' />
+        <% else %>
+          <%= show_card(card) %>
+        <% end %>
+        
       <% end %>
-    </h4>
   </div>
 
-    <% session[:dealer_hand].each_with_index do |card, i| %>
-      <% if @turn != 'Dealer' && i == 0 %>
-        <img src='/images/cards/cover.jpg' class='card' />
-      <% else %>
-        <%= show_card(card) %>
+  <!-- Diplay Next Card for Dealer button IF it's Dealer's turn -->
+  <div>
+    
+    <% if @turn == 'Dealer' %>
+
+      <% if @show_dealer_hit %>
+    
+        <form id="dealer_hit_form" class="container" action="/game/dealer/hit" method="post">
+          <input id="see_dealer_card_button" type="submit" value="See dealer's next card..." class="btn btn-primary">
+        </form>
+
       <% end %>
-      
+
     <% end %>
-</div>
+  </div>
 
-<!-- Diplay Next Card for Dealer button IF it's Dealer's turn -->
-<div>
-  
-  <% if @turn == 'Dealer' %>
+  <br/>
 
-    <% if @show_dealer_hit %>
-  
-      <form class="container" action="/game/dealer/hit" method="post">
-        <input type="submit" value="See dealer's next card..." class="btn btn-primary">
+  <div class="well felt">
+    <div>
+      <h4><%= session[:username] %>'s Hand:  <%= calculate_hand(session[:player_hand]) %>
+      </h4>
+    </div>
+    <div>Current Wager: $<%= session[:wager] %></div>
+    <div>Total Money: $<%= session[:money] %></div>
+    <% session[:player_hand].each do |card| %>
+      <%= show_card(card) %>
+    <% end %>
+  </div>
+
+  <!-- Diplay Hit/Stay buttons IF it's Player's turn -->
+  <div>
+    <% if @show_hit_stay_buttons %>
+      <form id="stay_form" class="hit_stay" action="/game/player/stay" method="post">
+        <input id="stay_button" type="submit" value="Stay" class="btn btn-success">
       </form>
-
+      <form id="hit_form" class="hit_stay" action="/game/player/hit" method="post">
+        <input id="hit_button" type="submit" value="Hit" class="btn btn-danger">
+      </form>
     <% end %>
-
-  <% end %>
-</div>
-
-<br/>
-
-<div class="well felt">
-  <div>
-    <h4><%= session[:username] %>'s Hand:  <%= calculate_hand(session[:player_hand]) %>
-    </h4>
   </div>
-  <div>Current Wager: $<%= session[:wager] %></div>
-  <div>Total Money: $<%= session[:money] %></div>
-  <% session[:player_hand].each do |card| %>
-    <%= show_card(card) %>
-  <% end %>
-</div>
 
-<!-- Diplay Hit/Stay buttons IF it's Player's turn -->
-<div>
-  <% if @show_hit_stay_buttons %>
-    <form class="hit_stay" action="/game/player/stay" method="post">
-      <input type="submit" value="Stay" class="btn btn-success">
-    </form>
-    <form class="hit_stay" action="/game/player/hit" method="post">
-      <input type="submit" value="Hit" class="btn btn-danger">
-    </form>
-  <% end %>
-</div>
-
-<!-- Diplay Play Again?/Quit buttons if the round is over -->
-<div>
-  <% if @show_play_again_quit_buttons %>
-    <form class="hit_stay" action="/game/player/quit" method="post">
-      <input type="submit" value="I'll Stop Now" class="btn btn-info">
-    </form>
-    <form class="hit_stay" action="/game/player/playagain" method="post">
-      <input type="submit" value="Play Again" class="btn btn-warning">
-    </form>
-  <% end %>
+  <!-- Diplay Play Again?/Quit buttons if the round is over -->
+  <div>
+    <% if @show_play_again_quit_buttons %>
+      <form class="hit_stay" action="/game/player/quit" method="post">
+        <input type="submit" value="I'll Stop Now" class="btn btn-info">
+      </form>
+      <form class="hit_stay" action="/game/player/playagain" method="post">
+        <input type="submit" value="Play Again" class="btn btn-warning">
+      </form>
+    <% end %>
+  </div>
 </div>

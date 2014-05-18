@@ -84,15 +84,15 @@ helpers do
   end
 
   def green_message(message)
-    @success = message
+    @green_alert = message
   end
 
   def red_message(message)
-    @error = message
+    @red_alert = message
   end
 
   def blue_message(message)
-    @info = message
+    @blue_alert = message
   end
 
   def winner!(message, factor=1)
@@ -235,6 +235,7 @@ post '/game/player/hit' do
     loser!("Sorry, #{session[:username]}, you busted")
   end
 
+  #erb :game, layout: false
   erb :game
 end
 
