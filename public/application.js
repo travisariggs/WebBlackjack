@@ -3,7 +3,8 @@ $(document).ready(function() {
   //$('#hit_form input').click(function() {
 
   // Hit Button - AJAX
-  $(document).on('click', '#hit_form input', function() {
+  //$(document).on('click', '#hit_form input', function() {
+  $(document).on('click', '#hit_button', function() {
     $.ajax({
       type: 'POST',
       url: '/game/player/hit'
